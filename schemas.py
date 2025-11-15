@@ -13,36 +13,44 @@ Model name is converted to lowercase for the collection name:
 
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 
-# Example schemas (replace with your own):
-
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
-
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
-
-# Add your own schemas here:
+# --------------------------------------------------
+# Expense Tracker Schemas
+# Each class below becomes its own collection using the lowercase
+# class name. For example: Expense -> "expense", Category -> "category".
 # --------------------------------------------------
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Category(BaseModel):
+    name: str = Field(..., description="Category name, e.g., Groceries, Rent")
+    color: str = Field("#6366F1", description="Hex color for UI tags")
+
+class Expense(BaseModel):
+    title: str = Field(..., description="Short description, e.g., Coffee at Starbucks")
+    amount: float = Field(..., gt=0, description="Positive amount in the selected currency")
+    category: str = Field(..., description="Category name (reference to Category.name)")
+    date: Optional[datetime] = Field(default_factory=datetime.utcnow, description="When the expense occurred")
+    notes: Optional[str] = Field(None, description="Optional notes")
+
+class Budget(BaseModel):
+    category: str = Field(..., description="Category this budget applies to")
+    limit: float = Field(..., gt=0, description="Spending limit for the period")
+    period: str = Field("monthly", description="Budget period: daily/weekly/monthly/quarterly/yearly")
+
+# Example schemas kept for reference (not used by the app directly)
+class User(BaseModel):
+    name: str
+    email: str
+    address: str
+    age: Optional[int] = None
+    is_active: bool = True
+
+class Product(BaseModel):
+    title: str
+    description: Optional[str] = None
+    price: float
+    category: str
+    in_stock: bool = True
+
+# Note: The Flames database viewer can read these schemas from GET /schema
+# for validation and quick CRUD management.
